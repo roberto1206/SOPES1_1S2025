@@ -1,0 +1,1 @@
+savedcmd_/home/roberto/Documentos/sopes1/SOPES1_1S2025/PROYECTO1/Kernel/test_containers/Module.symvers :=  scripts/mod/modpost -M -m -a      -o /home/roberto/Documentos/sopes1/SOPES1_1S2025/PROYECTO1/Kernel/test_containers/Module.symvers -T /home/roberto/Documentos/sopes1/SOPES1_1S2025/PROYECTO1/Kernel/test_containers/modules.order -i Module.symvers -e 

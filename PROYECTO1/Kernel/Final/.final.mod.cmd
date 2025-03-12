@@ -1,0 +1,1 @@
+savedcmd_/home/roberto/Documentos/sopes1/SOPES1_1S2025/PROYECTO1/Kernel/Final/final.mod := printf '%s\n'   final.o | awk '!x[$$0]++ { print("/home/roberto/Documentos/sopes1/SOPES1_1S2025/PROYECTO1/Kernel/Final/"$$0) }' > /home/roberto/Documentos/sopes1/SOPES1_1S2025/PROYECTO1/Kernel/Final/final.mod

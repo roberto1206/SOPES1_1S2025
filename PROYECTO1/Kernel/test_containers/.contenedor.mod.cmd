@@ -1,0 +1,1 @@
+savedcmd_/home/roberto/Documentos/sopes1/SOPES1_1S2025/PROYECTO1/Kernel/test_containers/contenedor.mod := printf '%s\n'   contenedor.o | awk '!x[$$0]++ { print("/home/roberto/Documentos/sopes1/SOPES1_1S2025/PROYECTO1/Kernel/test_containers/"$$0) }' > /home/roberto/Documentos/sopes1/SOPES1_1S2025/PROYECTO1/Kernel/test_containers/contenedor.mod

@@ -1,0 +1,20 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "/usr/include",
+                "/usr/src/linux-headers-$(uname -r)/include",
+                "/usr/src/linux-headers-$(uname -r)/arch/x86/include",
+                "/usr/src/linux-headers-$(uname -r)/arch/x86/include/generated",
+                "/usr/src/linux-headers-$(uname -r)/include/linux"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "intelliSenseMode": "gcc-x64",
+            "cppStandard": "c++17",
+            "cStandard": "c11"
+        }
+    ],
+    "version": 4
+}

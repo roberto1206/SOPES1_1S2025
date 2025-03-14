@@ -1,0 +1,54 @@
+--------FASE 1 SCRIPT
+chmod +x nombreScript.sh
+./nombreScript.sh
+
+--------FASE 2 Kernel
+uname -r  -------------------------------> Version de Kernel 
+sudo apt-get install make ---------------> obtener make si no lo tengo
+
+Compilar para el Kernel
+make    ---------------------------------> se compila y genera los archivos para instalar
+sudo insmod <file>.ko  ------------------> instalar el modulo en kernel
+sudo dmesg | tail -n 20 -----------------> para ver los logs del kernel
+sudo rmmod <name>  ----------------------> desinstalar modulo
+make clean ------------------------------> limpiar todo lo generado con make
+
+cat /proc/sysinfo_202201724 -------------> Lo generado por el kernel
+
+trash:///rust/src/main.rs
+RUST
+Problemas con algunas dependencias
+
+sudo apt-get install pkg-config
+cargo new nombreCarpeta
+cargo build ----------------------> Para las dependencias
+cargo run ------------------------> Para ejecutar el codigo
+cat /proc/sysinfo_202201724
+
+Eliminar el contenedor
+sudo docker inspect --format '{{.State.Pid}}' id-contenedor
+sudo kill -9 PID
+sudo docker rm -f id-contenedor
+
+systemctl status docker
+sudo systemctl restart docker
+sudo systemctl stop docker
+sudo systemctl start docker
+docker system prune -a --volumes
+------------docker recien instalado
+sudo systemctl stop docker
+sudo rm -rf /var/lib/docker
+sudo systemctl start docker
+
+
+Ver logs
+docker exec http_request_logger cat /logs/requests.log
+curl http://localhost:5000
+--------------Por el SCRIPT
+ps aux | grep 'bash'
+kill PID
+
+-------------crontab
+* * * * * /bin/bash /home/roberto/Documentos/sopes1/SOPES1_1S2025/PROYECTO1/sscripts/script.sh
+* * * * * sleep 30 /bin/bash /home/roberto/Documentos/sopes1/SOPES1_1S2025/PROYECTO1/sscripts/script.sh
+

@@ -300,10 +300,10 @@ static int containers_show(struct seq_file *m, void *v)
     // Imprimir información del sistema
     seq_printf(m, "{\n");
     seq_printf(m, "  \"system\": {\n");
-    seq_printf(m, "    \"Total_RAM_KB\": %lu,\n", si.totalram * si.mem_unit / 1024);
-    seq_printf(m, "    \"Free_RAM_KB\": %lu,\n", freeram * si.mem_unit / 1024);
-    seq_printf(m, "    \"Used_RAM_KB\": %lu,\n", usedram * si.mem_unit / 1024);
-    seq_printf(m, "    \"CPU_Usage_Percentage\": %d\n", system_cpu_usage);
+    seq_printf(m, "    \"RAM_TOTAL\": %lu,\n", si.totalram * si.mem_unit / 1024);
+    seq_printf(m, "    \"RAM_LIBRE\": %lu,\n", freeram * si.mem_unit / 1024);
+    seq_printf(m, "    \"RAM_OCUPADA\": %lu,\n", usedram * si.mem_unit / 1024);
+    seq_printf(m, "    \"CPU_USADA\": %d\n", system_cpu_usage);
     seq_printf(m, "  },\n");
     
     // Imprimir información de contenedores

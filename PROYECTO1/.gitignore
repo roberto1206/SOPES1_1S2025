@@ -1,0 +1,7 @@
+rust_services/target/
+rust_services/Cargo.lock
+Kernel/Final/
+Kernel/test_containers/
+Kernel/test_monitor/
+!Kernel/Final/final.c
+!Kernel/Final/Makefile

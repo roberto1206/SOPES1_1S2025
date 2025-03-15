@@ -1,6 +1,6 @@
 #!/bin/bash
 # Número de repeticiones (contenedores a crear)
-REPETICIONES=4
+REPETICIONES=10
 
 # Array con los diferentes tipos de contenedores que se pueden ejecutar
 CONTAINER_TYPES=("--vm 1 --vm-bytes 64M -t 30s" "--cpu 2 -t 30s" "--io 1 -t 30s" "--hdd 1 --hdd-bytes 100M -t 30s")

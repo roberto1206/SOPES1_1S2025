@@ -112,7 +112,10 @@ async fn gestionar_contenedores_por_categoria(docker: &Docker, logger_container_
         log::info!("RAM Ocupada: {} KB", sys_info.system.ram_ocupada);
         log::info!("CPU Usada: {}%", sys_info.system.cpu_usada);
         let cpu_json = sys_info.system.cpu_usada;
+        let ram_json = sys_info.system.ram_ocupada;
         guardar_cpu_info(cpu_json);
+        guardar_ram_info(ram_json);
+
         
         // Imprimir en consola de manera estilizada
         println!("\n╔═════════════════════════════════════════╗");
@@ -346,46 +349,88 @@ fn configurar_cronjob() {
     }
 }
 
-fn guardar_cpu_info(cpu_usada: u8) {
+fn guardar_cpu_info(cpu_usada: u8) -> std::io::Result<()> {
     let file_path = "/home/roberto/Documentos/sopes1/SOPES1_1S2025/PROYECTO1/rust_services/graficas/cpu.json";
     let path = Path::new(file_path);
-    let mut data = vec![];
-    
-    // Asegúrate de que el directorio exista
+
+    // Crear directorio si no existe
     if let Some(parent) = path.parent() {
-        if !parent.exists() {
-            std::fs::create_dir_all(parent).expect("No se pudo crear el directorio");
-        }
+        fs::create_dir_all(parent)?;
     }
 
-    // Leer los datos existentes si el archivo ya existe
+    let mut data = vec![];
+
+    // Leer archivo si existe
     if path.exists() {
-        let mut file = fs::File::open(file_path).expect("No se pudo abrir el archivo JSON");
+        let mut file = fs::File::open(file_path)?;
         let mut contents = String::new();
-        file.read_to_string(&mut contents).expect("No se pudo leer el archivo JSON");
-
+        file.read_to_string(&mut contents)?;
+        
         if !contents.trim().is_empty() {
-            data = serde_json::from_str(&contents).unwrap_or(vec![]);
+            data = serde_json::from_str(&contents).unwrap_or_else(|_| Vec::new());
         }
     }
-    
+
+    // Agregar nuevo registro
     let nuevo_registro = json!({
         "timestamp": chrono::Utc::now().to_rfc3339(),
         "cpu_usada": cpu_usada
     });
-    
     data.push(nuevo_registro);
-    
-    // Abrir el archivo y escribir los datos
+
+    // Escribir datos actualizados en el archivo
     let mut file = OpenOptions::new()
         .write(true)
         .create(true)
-        .truncate(false)
-        .open(file_path)
-        .expect("No se pudo abrir el archivo JSON para escritura");
+        .truncate(true) // Se debe sobrescribir el archivo
+        .open(file_path)?;
     
-    let json_data = serde_json::to_string_pretty(&data).expect("Error serializando JSON");
-    file.write_all(json_data.as_bytes()).expect("Error escribiendo en el archivo JSON");
+    let json_data = serde_json::to_string_pretty(&data)?;
+    file.write_all(json_data.as_bytes())?;
+    
+    Ok(())
+}
+
+fn guardar_ram_info(ram_ocupada: u64) -> std::io::Result<()> {
+    let file_path = "/home/roberto/Documentos/sopes1/SOPES1_1S2025/PROYECTO1/rust_services/graficas/ram.json";
+    let path = Path::new(file_path);
+
+    // Crear directorio si no existe
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+
+    let mut data = vec![];
+
+    // Leer archivo si existe
+    if path.exists() {
+        let mut file = fs::File::open(file_path)?;
+        let mut contents = String::new();
+        file.read_to_string(&mut contents)?;
+        
+        if !contents.trim().is_empty() {
+            data = serde_json::from_str(&contents).unwrap_or_else(|_| Vec::new());
+        }
+    }
+
+    // Agregar nuevo registro
+    let nuevo_registro = json!({
+        "timestamp": chrono::Utc::now().to_rfc3339(),
+        "ram_ocupada": ram_ocupada
+    });
+    data.push(nuevo_registro);
+
+    // Escribir datos actualizados en el archivo
+    let mut file = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(true) // Se debe sobrescribir el archivo
+        .open(file_path)?;
+    
+    let json_data = serde_json::to_string_pretty(&data)?;
+    file.write_all(json_data.as_bytes())?;
+    
+    Ok(())
 }
 
 #[actix_web::main]

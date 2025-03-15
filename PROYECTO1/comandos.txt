@@ -52,3 +52,8 @@ kill PID
 * * * * * /bin/bash /home/roberto/Documentos/sopes1/SOPES1_1S2025/PROYECTO1/sscripts/script.sh
 * * * * * sleep 30 /bin/bash /home/roberto/Documentos/sopes1/SOPES1_1S2025/PROYECTO1/sscripts/script.sh
 
+docker-compose down
+
+Grafana con jsons
+http://172.19.0.3:8080/cpu.json
+http://172.19.0.3:8080/ram.json

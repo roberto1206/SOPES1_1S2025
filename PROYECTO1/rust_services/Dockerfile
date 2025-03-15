@@ -1,28 +1,17 @@
-# Usa una imagen base de Rust para compilar la aplicación
-FROM rust:1.73 as builder
+# Usa la imagen base oficial de Grafana
+FROM grafana/grafana:latest
 
-# Establece el directorio de trabajo dentro del contenedor
-WORKDIR /usr/src/app
+# Instala plugins adicionales (opcional)
+# Ejemplo: grafana-piechart-panel
+# RUN grafana-cli plugins install grafana-piechart-panel
 
-# Copia todo el contenido del proyecto al contenedor
-COPY . .
+# Copia archivos de configuración personalizados (opcional)
+# Ejemplo: dashboards, datasources
+# COPY dashboards /var/lib/grafana/dashboards
+# COPY datasources /etc/grafana/provisioning/datasources
 
-# Compila la aplicación en modo release
-RUN cargo build --release
+# Expone el puerto 3000 (puerto predeterminado de Grafana)
+EXPOSE 3000
 
-# Usa una imagen base ligera para la etapa de ejecución
-FROM debian:buster-slim
-
-# Instala las dependencias necesarias para ejecutar la aplicación
-RUN apt-get update && apt-get install -y \
-    docker.io \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copia el binario compilado desde la etapa de compilación
-COPY --from=builder /usr/src/app/target/release/rust_services /usr/local/bin/rust_services
-
-# Expone el puerto en el que la aplicación escucha
-EXPOSE 5000
-
-# Define el comando para ejecutar la aplicación
-CMD ["rust_services"]
+# Comando para iniciar Grafana
+CMD ["grafana-server"]

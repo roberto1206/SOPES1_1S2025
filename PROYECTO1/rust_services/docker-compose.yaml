@@ -1,21 +1,20 @@
-version: '3.9'
-
 services:
-  rust_server:
-    build: .
-    container_name: rust_server
-    ports:
-      - "5000:5000"
-    volumes:
-      - ./graficas:/app/graficas
-
   grafana:
-    image: grafana/grafana
-    container_name: grafana
+    image: grafana/grafana:latest
     ports:
       - "3000:3000"
+    networks:
+      - mi-red
+  json-data:
+    build:
+      context: ./graficas
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
     volumes:
-      - grafana_data:/var/lib/grafana
-
-volumes:
-  grafana_data:
+      - /home/roberto/Documentos/sopes1/SOPES1_1S2025/PROYECTO1/rust_services/graficas:/app
+    networks:
+      - mi-red
+networks:
+  mi-red:
+    driver: bridge

@@ -76,3 +76,4 @@ Ya en `Localhost:3000` se ingreso con el password y user admin por facilidad no 
 ![alt text](./Documentacion/image-2.png)
 ![alt text](./Documentacion/image-3.png)
 ![alt text](./Documentacion/image5.png)
+![alt text](./Documentacion/dockerps.png)

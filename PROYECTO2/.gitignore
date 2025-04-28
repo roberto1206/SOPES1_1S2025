@@ -1,0 +1,8 @@
+api_rust/Cargo.lock
+api_rust/target/
+grpc_client/proto/weather_grpc.pb.go
+grpc_client/proto/weather.pb.go
+grpc_server_kafka/proto/weather_grpc.pb.go
+grpc_server_kafka/proto/weather.pb.go
+grpc_server_rabbit/proto/weather_grpc.pb.go
+grpc_server_rabbit/proto/weather.pb.go

@@ -1,0 +1,39 @@
+crear el go.mod
+go mod init nombre_archivo
+
+crear el go.sum
+go mod tidy
+
+para proto
+protoc --go_out=. --go-grpc_out=. proto/weather.proto
+
+SOPES1_1S2025
+└── PROYECTO2
+    ├── api_rust
+    |   ├── src
+    |   |   └── main.rs
+    |   ├── Cargo.lock
+    |   ├── Cargo.toml
+    │   └── Dockerfile
+    ├── grpc_client
+    │   ├── proto
+    │   │   └── weather.proto
+    │   ├── Dockerfile
+    │   ├── go.mod
+    │   ├── go.sum
+    │   ├── grpc_client.go
+    │   └── main.go
+    ├── grpc_server_kafka
+    │   ├── proto
+    │   ├── Dockerfile
+    │   ├── go.mod
+    │   ├── go.sum
+    │   └── main.go
+    ├── grpc_server_rabbit
+    │   ├── proto
+    │   ├── Dockerfile
+    │   ├── go.mod
+    │   ├── go.sum
+    │   └── main.go
+    ├── docker-compose.yaml
+    └── README.md

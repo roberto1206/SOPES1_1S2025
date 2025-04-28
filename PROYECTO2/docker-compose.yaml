@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  api-rust:
+    build: ./api_rust
+    ports:
+      - "8080:8080"
+    environment:
+      - GO_SERVICE_URL=http://grpc-client:8081/input
+    networks:
+      - app-network
+    depends_on:
+      - grpc-client
+
+  grpc-client:
+    build: ./grpc_client
+    ports:
+      - "8081:8081"
+    environment:
+      - RABBIT_SERVER=grpc-server-rabbit:50051
+      - KAFKA_SERVER=grpc-server-kafka:50052
+    networks:
+      - app-network
+    depends_on:
+      - grpc-server-rabbit
+      - grpc-server-kafka
+
+  grpc-server-rabbit:
+    build: ./grpc_server_rabbit
+    ports:
+      - "50051:50051"
+    networks:
+      - app-network
+
+  grpc-server-kafka:
+    build: ./grpc_server_kafka
+    ports:
+      - "50052:50052"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

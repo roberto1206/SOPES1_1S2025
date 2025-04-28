@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = "./proto;proto"; //Ruta
+
+message WeatherData {
+  string description = 1;
+  string country = 2;
+  string weather = 3;
+}
+
+service WeatherService {
+  rpc SendWeather (WeatherData) returns (WeatherData);
+}

@@ -4,10 +4,6 @@ FROM rust:latest AS builder
 WORKDIR /usr/src/app
 COPY . .
 
-# Corregir el código para añadir Serialize a WeatherData
-RUN sed -i 's/#\[derive(Deserialize)\]/#[derive(Deserialize, Serialize)]/' src/main.rs && \
-    sed -i '2s/use serde::Deserialize;/use serde::{Deserialize, Serialize};/' src/main.rs
-
 # Compilamos la aplicación
 RUN cargo build --release
 

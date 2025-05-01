@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"log"
+	"os"
 	"time"
 
 	pb "grpc_client/proto" // cambia según tu estructura
@@ -10,6 +12,12 @@ import (
 )
 
 func sendToGRPCServer(data *pb.WeatherData, address string) error {
+	// Verifica si está activada la simulación
+	if os.Getenv("SIMULATE") == "true" {
+		log.Printf("Simulación activa: datos simuladamente enviados a %s", address)
+		return nil
+	}
+
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {
 		return err

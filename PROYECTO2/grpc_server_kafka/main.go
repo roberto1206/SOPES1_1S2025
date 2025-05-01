@@ -2,36 +2,65 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"net"
+	"os"
 
-	pb "grpc_server_kafka/proto"
-
+	"github.com/segmentio/kafka-go"
 	"google.golang.org/grpc"
+
+	pb "grpc_server_kafka/proto" // Asegúrate que la ruta sea correcta
 )
 
 type server struct {
+	writer *kafka.Writer
 	pb.UnimplementedWeatherServiceServer
 }
 
-func (s *server) SendWeather(ctx context.Context, data *pb.WeatherData) (*pb.WeatherData, error) {
-	log.Printf("Recibido en servidor Kafka: %v", data)
-	// Aquí implementarías la lógica para publicar en Kafka
-	return data, nil
+func (s *server) SendWeather(ctx context.Context, req *pb.WeatherData) (*pb.WeatherData, error) {
+	jsonData, err := json.Marshal(req)
+	if err != nil {
+		log.Printf("❌ Error al serializar JSON: %v", err)
+		return nil, err
+	}
+
+	err = s.writer.WriteMessages(ctx, kafka.Message{
+		Key:   []byte("weather"),
+		Value: jsonData,
+	})
+	if err != nil {
+		log.Printf("❌ Error al enviar a Kafka: %v", err)
+		return nil, err
+	}
+
+	log.Printf("✅ Datos enviados a Kafka: %s", jsonData)
+	return req, nil
 }
 
 func main() {
-	// Puerto 50052 para el servidor Kafka
 	port := ":50052"
+	broker := os.Getenv("KAFKA_BROKER")
+	if broker == "" {
+		broker = "localhost:9092"
+	}
+
+	writer := &kafka.Writer{
+		Addr:     kafka.TCP(broker),
+		Topic:    "weather-topic",
+		Balancer: &kafka.LeastBytes{},
+	}
+
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
-		log.Fatalf("Error al iniciar listener: %v", err)
+		log.Fatalf("❌ Fallo al escuchar en el puerto %s: %v", port, err)
 	}
 
 	s := grpc.NewServer()
-	pb.RegisterWeatherServiceServer(s, &server{})
-	log.Printf("Servidor gRPC Kafka escuchando en %s", port)
+	pb.RegisterWeatherServiceServer(s, &server{writer: writer})
+
+	log.Printf("🛰️ Servidor gRPC escuchando en %s", port)
 	if err := s.Serve(lis); err != nil {
-		log.Fatalf("Error al iniciar servidor: %v", err)
+		log.Fatalf("❌ Error al iniciar servidor gRPC: %v", err)
 	}
 }

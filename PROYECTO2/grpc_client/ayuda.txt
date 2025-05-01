@@ -37,3 +37,135 @@ SOPES1_1S2025
     │   └── main.go
     ├── docker-compose.yaml
     └── README.md
+
+--HARBOR
+docker context ls
+docker context use default
+sudo nano /etc/docker/daemon.json
+docker build -t api_rust:latest .
+docker tag api_rust:latest 34.134.118.207:80/proyecto2-202201724/api_rust:latest
+docker push 34.134.118.207:80/proyecto2-202201724/api_rust:latest
+
+docker build -t grpc_server_kafka:latest .
+docker tag grpc_server_kafka:latest 34.134.118.207:80/proyecto2-202201724/grpc_server_kafka:latest
+docker push 34.134.118.207:80/proyecto2-202201724/grpc_server_kafka:latest
+
+docker build -t grpc_server_rabbit:latest .
+docker tag grpc_server_rabbit:latest 34.134.118.207:80/proyecto2-202201724/grpc_server_rabbit:latest
+docker push 34.134.118.207:80/proyecto2-202201724/grpc_server_rabbit:latest
+
+docker build -t grpc_client:latest .
+docker tag grpc_client:latest rmiguel12/grpc_client:latest
+docker push rmiguel12/grpc_client:latest
+
+docker build -t grpc_server_kafka:latest .
+docker tag grpc_server_kafka:latest rmiguel12/grpc_server_kafka:latest
+docker push rmiguel12/grpc_server_kafka:latest
+
+docker build -t grpc_server_rabbit:latest .
+docker tag grpc_server_rabbit:latest rmiguel12/grpc_server_rabbit:latest
+docker push rmiguel12/grpc_server_rabbit:latest
+
+docker build -t rmiguel12/grpc_client:latest .
+docker push rmiguel12/grpc_client:latest
+
+docker build -t rmiguel12/api_rust:latest .
+docker push rmiguel12/api_rust:latest
+
+docker build -t rmiguel12/grpc_server_kafka:latest .
+docker push rmiguel12/grpc_server_kafka:latest
+
+docker build -t rmiguel12/kafka-consumer:latest .
+docker push rmiguel12/kafka-consumer:latest
+
+docker build -t rmiguel12/rabbit-consumer:latest .
+docker push rmiguel12/rabbit-consumer:latest
+
+docker build -t rmiguel12/rest:latest .
+docker push rmiguel12/rest:latest
+
+
+kubectl apply -f api-rust-deployment.yaml
+kubectl apply -f grpc-client-deployment.yaml
+kubectl apply -f grpc-server-rabbit-deployment.yaml
+kubectl apply -f grpc-server-kafka-deployment.yaml
+kubectl apply -f kafka-topic.yaml
+kubectl apply -f kafka-consumer.yaml
+
+kubectl apply -f kafka-consumer-deployment.yaml
+kubectl apply -f rabbit-consumer-deployment.yaml
+kubectl apply -f kafka-service.yaml
+kubectl apply -f kafka-deployment.yaml
+
+kubectl apply -f rust-service.yaml
+kubectl apply -f rust-deployment.yaml
+kubectl apply -f namespace.yaml
+kubectl apply -f ingress.yaml
+kubectl apply -f grpc-client-service.yaml
+kubectl apply -f grpc-client-deployment.yaml
+
+
+kubectl get pods
+kubectl get svc
+
+curl -X POST http://34.134.186.216:30080/input   -H "Content-Type: application/json"   -d '{"description": "rainy", "country": "GT", "weather": "cool"}'
+curl -X POST http://34.66.50.173:30080/input \
+    -H "Content-Type: application/json" \
+    -d '{"description": "snowy", "country": "CA", "weather": "cold"}'
+
+curl -X POST http://34.66.50.173:30080/input \
+    -H "Content-Type: application/json" \
+    -d '{"description": "windy", "country": "AR", "weather": "chilly", "humidity": 75}'
+
+
+
+usar kafka
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo add provectus https://provectus.github.io/kafka-ui-charts
+helm repo update
+
+helm install rabbitmq bitnami/rabbitmq \
+  --set replicaCount=1 \
+  --set auth.username=admin \
+  --set auth.password=admin123 \
+  --set service.type=LoadBalancer \
+  --set persistence.enabled=false
+
+helm install kafka bitnami/kafka \
+  --set replicas=1 \
+  --set zookeeper.enabled=true \
+  --set service.type=LoadBalancer \
+  --set persistence.enabled=false
+
+
+
+verificar
+kubectl get svc
+
+kubectl get svc --watch
+
+desinstalar
+helm uninstall kafka-ui
+helm list
+
+
+otra solucion
+kubectl create namespace portainer
+portainer admin - admin123456789
+
+kubectl create namespace kafka
+
+gcloud auth login
+gcloud config set project alpine-life-454401-t0
+gcloud container clusters list
+gcloud container clusters get-credentials [NOMBRE_DEL_CLUSTER] --region [REGIÓN]
+gcloud container clusters get-credentials tweets-cluster --region us-central1
+
+kubectl get pods
+
+kubectl get pods  -n weather-tweets
+kubectl logs -n weather-tweets pod/grpc-client-6cf8497dfc-8fvwz
+
+
+ver el ingress
+kubectl get svc ingress-nginx-controller -n ingress-nginx --watch

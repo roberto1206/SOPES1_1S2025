@@ -34,16 +34,16 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		err := sendToGRPCServer(&weather, rabbitServer)
 		if err != nil {
-			log.Println("Error enviando a servidor gRPC RabbitMQ:", err)
+			log.Println("Ups, no se pudo enviar a RabbitMQ:", err)
 		} else {
-			log.Println("Datos enviados correctamente a RabbitMQ")
+			log.Println("Se enviaron los datos a RabbitMQ")
 		}
 
 		err = sendToGRPCServer(&weather, kafkaServer)
 		if err != nil {
-			log.Println("Error enviando a servidor gRPC Kafka:", err)
+			log.Println("Ups, no se pudo enviar a Kafka:", err)
 		} else {
-			log.Println("Datos enviados correctamente a Kafka")
+			log.Println("Se enviaron los datos a Kafka")
 		}
 	}()
 

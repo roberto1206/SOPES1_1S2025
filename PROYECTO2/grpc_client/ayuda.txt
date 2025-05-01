@@ -84,6 +84,12 @@ docker push rmiguel12/rabbit-consumer:latest
 docker build -t rmiguel12/rest:latest .
 docker push rmiguel12/rest:latest
 
+docker build -t rmiguel12/kafka-producer-final:latest .
+docker push rmiguel12/kafka-producer-final:latest
+
+docker build -t rmiguel12/kafka-consumer-final:latest .
+docker push rmiguel12/kafka-consumer-final:latest
+
 
 kubectl apply -f api-rust-deployment.yaml
 kubectl apply -f grpc-client-deployment.yaml
@@ -116,6 +122,10 @@ curl -X POST http://34.66.50.173:30080/input \
 curl -X POST http://34.66.50.173:30080/input \
     -H "Content-Type: application/json" \
     -d '{"description": "windy", "country": "AR", "weather": "chilly", "humidity": 75}'
+
+# Reemplaza $INGRESS_IP con la IP real
+curl -X POST http://34.134.186.216.nip.io/input -H "Content-Type: application/json" -d '{"description":"Esta lloviendo","country":"GT","weather":"Lluvioso"}'
+curl -X POST http://34.134.186.216.nip.io/input -H "Content-Type: application/json" -d '{"description":"El cielo está despejado y hace sol","country":"MX","weather":"Soleado"}'
 
 
 
@@ -163,7 +173,7 @@ gcloud container clusters get-credentials tweets-cluster --region us-central1
 
 kubectl get pods
 
-kubectl get pods  -n weather-tweets
+kubectl get pods -n weather-tweets
 kubectl logs -n weather-tweets pod/grpc-client-6cf8497dfc-8fvwz
 
 

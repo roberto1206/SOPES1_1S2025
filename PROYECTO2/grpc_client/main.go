@@ -19,31 +19,29 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Obtener direcciones de los servidores gRPC de variables de entorno
-	rabbitServer := os.Getenv("RABBIT_SERVER")
-	if rabbitServer == "" {
-		rabbitServer = "localhost:50051"
-	}
-
 	kafkaServer := os.Getenv("KAFKA_SERVER")
 	if kafkaServer == "" {
-		kafkaServer = "localhost:50052"
+		kafkaServer = "my-cluster-kafka-bootstrap.weather-tweets:9092"
 	}
 
-	// log.Printf("Recibido: %v - Reenviando a RabbitMQ(%s) y Kafka(%s)", weather, rabbitServer, kafkaServer)
-
+	// Enviar el mensaje a Kafka
 	go func() {
-		err := sendToGRPCServer(&weather, rabbitServer)
+		err := sendToKafka(&weather, kafkaServer)
 		if err != nil {
-			log.Println("Ups, no se pudo enviar a RabbitMQ:", err)
+			log.Println("No se pudo enviar a Kafka:", err)
 		} else {
-			log.Println("Se enviaron los datos a RabbitMQ")
+			log.Println("Mensaje enviado a Kafka correctamente")
 		}
+	}()
 
-		err = sendToGRPCServer(&weather, kafkaServer)
+	// También enviar el mensaje a gRPC
+	go func() {
+		grpcServerAddress := "producer.weather-tweets.svc.cluster.local:50051"
+		err := sendToGRPCServer(&weather, grpcServerAddress)
 		if err != nil {
-			log.Println("Ups, no se pudo enviar a Kafka:", err)
+			log.Println("No se pudo enviar a gRPC:", err)
 		} else {
-			log.Println("Se enviaron los datos a Kafka")
+			log.Println("Mensaje enviado a gRPC correctamente")
 		}
 	}()
 

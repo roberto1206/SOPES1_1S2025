@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-cluster-kafka-bootstrap
+  namespace: weather-tweets
+spec:
+  ports:
+    - port: 9092
+      targetPort: 9092
+  selector:
+    strimzi.io/cluster: my-cluster

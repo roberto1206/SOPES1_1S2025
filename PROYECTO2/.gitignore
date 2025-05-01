@@ -6,3 +6,5 @@ grpc_server_kafka/proto/weather_grpc.pb.go
 grpc_server_kafka/proto/weather.pb.go
 grpc_server_rabbit/proto/weather_grpc.pb.go
 grpc_server_rabbit/proto/weather.pb.go
+producerKafka/proto/weather_grpc.pb.go
+producerKafka/proto/weather.pb.go

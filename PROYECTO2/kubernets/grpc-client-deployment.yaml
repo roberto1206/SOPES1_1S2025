@@ -1,34 +1,30 @@
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: grpc-client
-  namespace: weather-tweets
-spec:
-  replicas: 2  # Empezando con 2 réplicas para pruebas comparativas
-  selector:
-    matchLabels:
-      app: grpc-client
-  template:
-    metadata:
-      labels:
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: grpc-client
+    namespace: weather-tweets
+  spec:
+    replicas: 2  # Empezando con 2 réplicas para pruebas comparativas
+    selector:
+      matchLabels:
         app: grpc-client
-    spec:
-      containers:
-      - name: grpc-client
-        image: rmiguel12/grpc_client:latest
-        ports:
-        - containerPort: 8081
-        resources:
-          requests:
-            cpu: "100m"
-            memory: "128Mi"
-          limits:
-            cpu: "500m"
-            memory: "256Mi"
-        env:
-          - name: RABBIT_SERVER
-            value: "rabbit-grpc-server:50051"
-          - name: KAFKA_SERVER
-            value: "kafka-grpc-server:50052"
-          - name: SIMULATE
-            value: "true"
+    template:
+      metadata:
+        labels:
+          app: grpc-client
+      spec:
+        containers:
+        - name: grpc-client
+          image: rmiguel12/grpc_client:latest
+          ports:
+          - containerPort: 8081
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          env:
+            - name: KAFKA_SERVER
+              value: "my-cluster-kafka-bootstrap.weather-tweets:9092"

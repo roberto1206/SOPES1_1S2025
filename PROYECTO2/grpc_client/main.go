@@ -1,59 +1,64 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
-	"os"
+	"time"
 
-	pb "grpc_client/proto"
+	pb "grpc_client/proto" // Asegúrate de que esta ruta es correcta según tu estructura
+
+	"google.golang.org/grpc"
 )
+
+func main() {
+	port := "8081"
+	http.HandleFunc("/input", handler)
+	log.Printf("Cliente API REST ejecutándose en puerto :%s", port)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
+}
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	var weather pb.WeatherData
 
 	err := json.NewDecoder(r.Body).Decode(&weather)
 	if err != nil {
-		http.Error(w, "Invalid request", http.StatusBadRequest)
+		http.Error(w, "Solicitud inválida", http.StatusBadRequest)
 		return
 	}
 
-	// Obtener direcciones de los servidores gRPC de variables de entorno
-	kafkaServer := os.Getenv("KAFKA_SERVER")
-	if kafkaServer == "" {
-		kafkaServer = "my-cluster-kafka-bootstrap.weather-tweets:9092"
-	}
-
-	// Enviar el mensaje a Kafka
-	go func() {
-		err := sendToKafka(&weather, kafkaServer)
-		if err != nil {
-			log.Println("No se pudo enviar a Kafka:", err)
-		} else {
-			log.Println("Mensaje enviado a Kafka correctamente")
-		}
-	}()
-
-	// También enviar el mensaje a gRPC
 	go func() {
 		grpcServerAddress := "producer.weather-tweets.svc.cluster.local:50051"
 		err := sendToGRPCServer(&weather, grpcServerAddress)
 		if err != nil {
-			log.Println("No se pudo enviar a gRPC:", err)
+			log.Println("❌ No se pudo enviar a gRPC:", err)
 		} else {
-			log.Println("Mensaje enviado a gRPC correctamente")
+			log.Println("✅ Mensaje enviado a gRPC correctamente")
 		}
 	}()
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Datos meteorológicos recibidos y reenviados"))
+	w.Write([]byte("Datos meteorológicos reenviados por gRPC"))
 }
 
-func main() {
-	// Usar puerto 8081 para no colisionar con la API Rust que usa 8080
-	port := "8081"
+func sendToGRPCServer(data *pb.WeatherData, address string) error {
+	conn, err := grpc.Dial(address, grpc.WithInsecure())
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
 
-	http.HandleFunc("/input", handler)
-	log.Printf("Cliente API REST ejecutándose en puerto :%s", port)
-	http.ListenAndServe(":"+port, nil)
+	client := pb.NewWeatherServiceClient(conn)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	res, err := client.SendWeather(ctx, data)
+	if err != nil {
+		return err
+	}
+
+	log.Println("📬 Respuesta desde producer:", res.Status)
+	return nil
 }

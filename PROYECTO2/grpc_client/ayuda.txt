@@ -66,30 +66,19 @@ docker build -t grpc_server_rabbit:latest .
 docker tag grpc_server_rabbit:latest rmiguel12/grpc_server_rabbit:latest
 docker push rmiguel12/grpc_server_rabbit:latest
 
-docker build -t rmiguel12/grpc_client:latest .
-docker push rmiguel12/grpc_client:latest
+docker build -t rmiguel12/api_rust:1.0 .
+docker push rmiguel12/api_rust:1.0
 
-docker build -t rmiguel12/api_rust:latest .
-docker push rmiguel12/api_rust:latest
+docker build -t rmiguel12/grpc_client:1.0 .
+docker push rmiguel12/grpc_client:1.0
 
-docker build -t rmiguel12/grpc_server_kafka:latest .
-docker push rmiguel12/grpc_server_kafka:latest
+docker build -t rmiguel12/kafka-producer:1.0 .
+docker push rmiguel12/kafka-producer:1.0
 
-docker build -t rmiguel12/kafka-consumer:latest .
-docker push rmiguel12/kafka-consumer:latest
+docker build -t rmiguel12/kafka-consumer:1.0 .
+docker push rmiguel12/kafka-consumer:1.0
 
-docker build -t rmiguel12/rabbit-consumer:latest .
-docker push rmiguel12/rabbit-consumer:latest
-
-docker build -t rmiguel12/rest:latest .
-docker push rmiguel12/rest:latest
-
-docker build -t rmiguel12/kafka-producer-final:latest .
-docker push rmiguel12/kafka-producer-final:latest
-
-docker build -t rmiguel12/kafka-consumer-final:latest .
-docker push rmiguel12/kafka-consumer-final:latest
-
+docker build --no-cache -t rmiguel12/kafka-consumer-final:latest .
 
 kubectl apply -f api-rust-deployment.yaml
 kubectl apply -f grpc-client-deployment.yaml
@@ -97,7 +86,6 @@ kubectl apply -f grpc-server-rabbit-deployment.yaml
 kubectl apply -f grpc-server-kafka-deployment.yaml
 kubectl apply -f kafka-topic.yaml
 kubectl apply -f kafka-consumer.yaml
-
 kubectl apply -f kafka-consumer-deployment.yaml
 kubectl apply -f rabbit-consumer-deployment.yaml
 kubectl apply -f kafka-service.yaml
@@ -124,8 +112,8 @@ curl -X POST http://34.66.50.173:30080/input \
     -d '{"description": "windy", "country": "AR", "weather": "chilly", "humidity": 75}'
 
 # Reemplaza $INGRESS_IP con la IP real
-curl -X POST http://34.134.186.216.nip.io/input -H "Content-Type: application/json" -d '{"description":"Esta lloviendo","country":"GT","weather":"Lluvioso"}'
-curl -X POST http://34.134.186.216.nip.io/input -H "Content-Type: application/json" -d '{"description":"El cielo está despejado y hace sol","country":"MX","weather":"Soleado"}'
+curl -X POST http://34.47.53.179.nip.io/input -H "Content-Type: application/json" -d '{"description":"Esta lloviendo","country":"GT","weather":"Lluvioso"}'
+curl -X POST http://34.47.53.179.nip.io/input -H "Content-Type: application/json" -d '{"description":"El cielo está despejado y hace sol","country":"MX","weather":"Soleado"}'
 
 
 
@@ -174,8 +162,14 @@ gcloud container clusters get-credentials tweets-cluster --region us-central1
 kubectl get pods
 
 kubectl get pods -n weather-tweets
+kubectl get pods -n strimzi
+
+instalar strimzi
+kubectl create -f https://strimzi.io/install/latest?namespace=weather-tweets -n weather-tweets
+
 kubectl logs -n weather-tweets pod/grpc-client-6cf8497dfc-8fvwz
 
+kubectl delete pod grpc-client-84fd96c5b8-drwn9 -n weather-tweets
 
 ver el ingress
 kubectl get svc ingress-nginx-controller -n ingress-nginx --watch

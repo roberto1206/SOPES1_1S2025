@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: consumer
-          image: rmiguel12/kafka-consumer-final:latest
+          image: rmiguel12/kafka-consumer:3.0
           env:
             - name: KAFKA_BOOTSTRAP_SERVERS
               value: "my-cluster-kafka-bootstrap.weather-tweets:9092"

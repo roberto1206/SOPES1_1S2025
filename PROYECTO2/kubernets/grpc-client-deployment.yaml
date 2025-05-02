@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: grpc-client
-  namespace: weather-tweets
+  namespace: tweets
 spec:
   replicas: 2
   selector:
@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: grpc-client
-        image: rmiguel12/grpc_client:2.0  # Actualiza con tu imagen corregida
+        image: rmiguel12/grpc_client:4.0  # Actualiza con tu imagen corregida
         ports:
         - containerPort: 8081
         resources:
@@ -27,4 +27,4 @@ spec:
             memory: "256Mi"
         env:
           - name: KAFKA_SERVER
-            value: "my-cluster-kafka-bootstrap.weather-tweets:9092"
+            value: "my-cluster-kafka-bootstrap:9092"

@@ -69,14 +69,14 @@ docker push rmiguel12/grpc_server_rabbit:latest
 docker build -t rmiguel12/api_rust:1.0 .
 docker push rmiguel12/api_rust:1.0
 
-docker build -t rmiguel12/grpc_client:1.0 .
-docker push rmiguel12/grpc_client:1.0
+docker build -t rmiguel12/grpc_client:3.0 .
+docker push rmiguel12/grpc_client:3.0
 
-docker build -t rmiguel12/kafka-producer:1.0 .
-docker push rmiguel12/kafka-producer:1.0
+docker build -t rmiguel12/kafka-producer:4.0 .
+docker push rmiguel12/kafka-producer:4.0
 
-docker build -t rmiguel12/kafka-consumer:1.0 .
-docker push rmiguel12/kafka-consumer:1.0
+docker build -t rmiguel12/kafka-consumer:11.0 .
+docker push rmiguel12/kafka-consumer:11.0
 
 docker build --no-cache -t rmiguel12/kafka-consumer-final:latest .
 
@@ -102,18 +102,9 @@ kubectl apply -f grpc-client-deployment.yaml
 kubectl get pods
 kubectl get svc
 
-curl -X POST http://34.134.186.216:30080/input   -H "Content-Type: application/json"   -d '{"description": "rainy", "country": "GT", "weather": "cool"}'
-curl -X POST http://34.66.50.173:30080/input \
-    -H "Content-Type: application/json" \
-    -d '{"description": "snowy", "country": "CA", "weather": "cold"}'
-
-curl -X POST http://34.66.50.173:30080/input \
-    -H "Content-Type: application/json" \
-    -d '{"description": "windy", "country": "AR", "weather": "chilly", "humidity": 75}'
-
 # Reemplaza $INGRESS_IP con la IP real
-curl -X POST http://34.47.53.179.nip.io/input -H "Content-Type: application/json" -d '{"description":"Esta lloviendo","country":"GT","weather":"Lluvioso"}'
-curl -X POST http://34.47.53.179.nip.io/input -H "Content-Type: application/json" -d '{"description":"El cielo está despejado y hace sol","country":"MX","weather":"Soleado"}'
+curl -X POST http://35.238.219.159.nip.io/input -H "Content-Type: application/json" -d '{"description":"Esta lloviendo","country":"GT","weather":"Lluvioso"}'
+curl -X POST http://35.238.219.159.nip.io/input -H "Content-Type: application/json" -d '{"description":"El cielo está despejado y hace sol","country":"MX","weather":"Soleado"}'
 
 
 
@@ -157,19 +148,83 @@ gcloud auth login
 gcloud config set project alpine-life-454401-t0
 gcloud container clusters list
 gcloud container clusters get-credentials [NOMBRE_DEL_CLUSTER] --region [REGIÓN]
-gcloud container clusters get-credentials tweets-cluster --region us-central1
+gcloud container clusters get-credentials tweets --region us-central1-c
 
 kubectl get pods
 
-kubectl get pods -n weather-tweets
+kubectl get pods -n tweets
 kubectl get pods -n strimzi
 
 instalar strimzi
 kubectl create -f https://strimzi.io/install/latest?namespace=weather-tweets -n weather-tweets
 
-kubectl logs -n weather-tweets pod/grpc-client-6cf8497dfc-8fvwz
+kubectl logs -n tweets pod/kafka-consumer-6f67b89895-b7t64
 
-kubectl delete pod grpc-client-84fd96c5b8-drwn9 -n weather-tweets
+kubectl delete pod kafka-consumer-6f67b89895-4vzr4 -n tweets
 
 ver el ingress
 kubectl get svc ingress-nginx-controller -n ingress-nginx --watch
+kubectl get svc -n tweets
+
+En la v4.0 de consumer ya se empieza con redis  
+
+grafana
+kubectl apply -f grafana-simple.yaml
+kubectl port-forward -n monitoring svc/grafana 3000:3000
+si se reinicia se pierde todo
+
+kubectl port-forward -n weather-tweets svc/grafana 3000:3000
+
+kubectl run -i --tty redis-cli --rm \
+  -n weather-tweets \
+  --image=redis:7 \
+  --restart=Never \
+  --command -- redis-cli -h redis-service
+
+
+pasos para instalar todo
+instalar helm
+curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+
+kubectl create namespace ingress-nginx
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo update
+helm install ingress-nginx ingress-nginx/ingress-nginx \
+  --namespace ingress-nginx \
+  --create-namespace
+
+kubectl get pods -n ingress-nginx
+kubectl get svc -n ingress-nginx
+
+
+kubectl create namespace strimzi
+
+helm repo add strimzi https://strimzi.io/charts/
+helm repo update
+
+helm install strimzi-kafka-operator strimzi/strimzi-kafka-operator \
+  --namespace strimzi \
+  --create-namespace
+
+kubectl get pods -n strimzi
+
+ips externas
+kubectl get svc -n tweets
+
+kubectl get svc redis-service -n weather-tweets
+
+grafana
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+helm install grafana grafana/grafana --namespace tweets --create-namespace
+kubectl get pods -n tweets
+kubectl port-forward svc/grafana 3000:80 -n tweets
+
+para que funcione strimzi
+kubectl create -f https://strimzi.io/install/latest?namespace=weather-tweets -n weather-tweets
+
+
+kubectl port-forward -n tweets pod/redis-7b986b9f57-mpdn7 6379:6379
+redis-cli -h redis -p 6379
+
+

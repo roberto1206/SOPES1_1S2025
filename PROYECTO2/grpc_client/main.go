@@ -29,7 +29,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		grpcServerAddress := "producer.weather-tweets.svc.cluster.local:50051"
+		grpcServerAddress := "producer.tweets.svc.cluster.local:50051"
 		err := sendToGRPCServer(&weather, grpcServerAddress)
 		if err != nil {
 			log.Println("❌ No se pudo enviar a gRPC:", err)

@@ -6,14 +6,12 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
+	"github.com/redis/go-redis/v9"
 	"github.com/segmentio/kafka-go"
 )
 
-// WeatherData estructura para deserializar mensajes JSON
 type WeatherData struct {
 	Description string `json:"description"`
 	Country     string `json:"country"`
@@ -21,120 +19,78 @@ type WeatherData struct {
 }
 
 func main() {
-	// Configuración desde variables de entorno
-	topic := getEnvWithDefault("KAFKA_TOPIC", "weather-topic")
-	broker := getEnvWithDefault("KAFKA_BOOTSTRAP_SERVERS", "my-cluster-kafka-bootstrap.weather-tweets:9092")
-	groupID := getEnvWithDefault("KAFKA_GROUP_ID", "weather-consumer-group")
+	ctx := context.Background()
 
-	// Configurar el logger para incluir hora y archivo
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	log.Printf("🔄 Iniciando consumidor de Kafka: topic=%s, broker=%s", topic, broker)
-
-	// Configurar lector de Kafka con opciones más robustas
-	reader := kafka.NewReader(kafka.ReaderConfig{
-		Brokers:        []string{broker},
-		Topic:          topic,
-		GroupID:        groupID,
-		MinBytes:       10e3, // 10KB mínimo por lote
-		MaxBytes:       10e6, // 10MB máximo por lote
-		MaxWait:        1 * time.Second,
-		StartOffset:    kafka.LastOffset, // Comenzar desde el último mensaje
-		CommitInterval: 1 * time.Second,  // Confirmar offsets cada segundo
-
-		// Usar un rebalance rápido para recuperación rápida
-		RebalanceTimeout: 5 * time.Second,
-
-		// Retry lógica
-		ReadBackoffMin: 100 * time.Millisecond,
-		ReadBackoffMax: 1 * time.Second,
+	// Config Redis
+	redisHost := os.Getenv("REDIS_HOST")
+	redisPassword := os.Getenv("REDIS_PASSWORD")
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     redisHost, // "redis-service:6379"
+		Password: redisPassword,
+		DB:       0,
 	})
 
-	// Configurar context con cancelación para shutdown limpio
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	// Config Kafka
+	topic := "weather-topic"
+	broker := "my-cluster-kafka-bootstrap:9092"
+	r := kafka.NewReader(kafka.ReaderConfig{
+		Brokers:  []string{broker},
+		Topic:    topic,
+		GroupID:  "weather-consumer-group",
+		MinBytes: 10e3,
+		MaxBytes: 10e6,
+	})
 
-	// Canal para señales de terminación
-	signals := make(chan os.Signal, 1)
-	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
+	log.Printf("🟢 Escuchando en el topic: %s", topic)
 
-	// Canal para errores de procesamiento
-	errs := make(chan error, 1)
-
-	// Iniciar procesamiento en goroutine
-	go func() {
-		defer reader.Close()
-		log.Println("🟢 Consumer escuchando en el topic:", topic)
-
-		for {
-			select {
-			case <-ctx.Done():
-				return // Salir si el contexto fue cancelado
-			default:
-				msg, err := reader.ReadMessage(ctx)
-				if err != nil {
-					if ctx.Err() == context.Canceled {
-						return // Ignorar errores por cancelación del contexto
-					}
-					log.Printf("❌ Error al leer mensaje: %v", err)
-					errs <- err
-					time.Sleep(1 * time.Second) // Esperar antes de reintentar
-					continue
-				}
-
-				// Procesar el mensaje
-				processMessage(msg)
-
-				// Confirmación explícita (opcional con kafka-go)
-				// Kafka-go lo hace automáticamente en CommitInterval
-			}
+	for {
+		m, err := r.ReadMessage(ctx)
+		if err != nil {
+			log.Printf("❌ Error al leer mensaje Kafka: %v", err)
+			continue
 		}
-	}()
 
-	// Esperar señal de terminación o error
-	select {
-	case sig := <-signals:
-		log.Printf("📨 Señal recibida: %v", sig)
-	case err := <-errs:
-		log.Printf("🚨 Error crítico: %v", err)
+		log.Printf("📦 Kafka JSON: %s", string(m.Value))
+
+		var data WeatherData
+		if err := json.Unmarshal(m.Value, &data); err != nil {
+			log.Printf("❌ JSON inválido: %v", err)
+			continue
+		}
+
+		// Guardar datos en Redis Hash
+		timestamp := time.Now().Format("20060102_150405.000")
+		key := fmt.Sprintf("weather:%s", timestamp)
+		_, err = rdb.HSet(ctx, key,
+			"country", data.Country,
+			"weather", data.Weather,
+			"description", data.Description,
+			"timestamp", timestamp,
+		).Result()
+		if err != nil {
+			log.Fatalf("❌ Error al guardar en Redis: %v", err)
+			return
+		}
+
+		log.Printf("✅ Guardado en Redis: %s", key)
+
+		// Contador incremental
+		count, err := rdb.Incr(ctx, "weather:count").Result()
+		if err != nil {
+			log.Printf("❌ Error contador Redis: %v", err)
+			continue
+		}
+
+		// Agregar al Sorted Set con timestamp (X = tiempo, Y = count)
+		unixTime := float64(time.Now().UnixNano()) / 1e9
+		_, err = rdb.ZAdd(ctx, "weather_counter_timeline", redis.Z{
+			Score:  float64(count),
+			Member: fmt.Sprintf("%.0f", unixTime*1000), // Convertir a milisegundos
+		}).Result()
+		if err != nil {
+			log.Printf("❌ Error al agregar al Sorted Set: %v", err)
+		} else {
+			log.Printf("📈 Guardado en timeline: %d @ %.3f", count, unixTime)
+		}
 	}
-
-	// Iniciar terminación limpia
-	log.Println("🔄 Cerrando consumidor...")
-	cancel()                    // Cancelar context para que la goroutine de lectura termine
-	time.Sleep(2 * time.Second) // Dar tiempo para que todo cierre correctamente
-	log.Println("👋 Consumidor finalizado")
-}
-
-// Procesar un mensaje de Kafka
-func processMessage(msg kafka.Message) {
-	log.Printf("📦 Mensaje recibido - Partition: %d, Offset: %d", msg.Partition, msg.Offset)
-
-	// Deserializar el mensaje JSON
-	var weatherData WeatherData
-	if err := json.Unmarshal(msg.Value, &weatherData); err != nil {
-		log.Printf("❌ Error al deserializar mensaje: %v", err)
-		fmt.Println("📄 Contenido del mensaje:", string(msg.Value))
-		return
-	}
-
-	// Procesar datos
-	log.Printf("🌤️ Datos meteorológicos: País=%s, Clima=%s, Descripción=%s",
-		weatherData.Country, weatherData.Weather, weatherData.Description)
-
-	// Aquí podrías implementar tu lógica de procesamiento:
-	// - Guardar en base de datos
-	// - Enviar notificaciones
-	// - Analizar tendencias
-	// - etc.
-
-	fmt.Println("📄 Mensaje procesado correctamente")
-}
-
-// Obtener variable de entorno con valor predeterminado
-func getEnvWithDefault(key, defaultValue string) string {
-	value := os.Getenv(key)
-	if value == "" {
-		return defaultValue
-	}
-	return value
 }

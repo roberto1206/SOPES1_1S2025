@@ -66,7 +66,7 @@ func main() {
 	log.Println("🚀 Iniciando servidor productor...")
 
 	// Usar variables de entorno o valores predeterminados
-	kafkaServer := getEnvWithDefault("KAFKA_BOOTSTRAP_SERVERS", "my-cluster-kafka-bootstrap.weather-tweets:9092")
+	kafkaServer := getEnvWithDefault("KAFKA_BOOTSTRAP_SERVERS", "my-cluster-kafka-bootstrap:9092")
 	kafkaTopic := getEnvWithDefault("KAFKA_TOPIC", "weather-topic")
 
 	log.Printf("🔌 Conectando a Kafka en %s, topic %s", kafkaServer, kafkaTopic)

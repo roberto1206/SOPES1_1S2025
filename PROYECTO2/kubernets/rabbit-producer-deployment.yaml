@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grpc-rabbitmq-producer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grpc-rabbitmq-producer
+  template:
+    metadata:
+      labels:
+        app: grpc-rabbitmq-producer
+    spec:
+      containers:
+        - name: producer
+          image: rmiguel12/rabbit-producer:1.0
+          ports:
+            - containerPort: 50052
+          env:
+            - name: RABBITMQ_HOST
+              value: rabbitmq.default.svc.cluster.local
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grpc-rabbitmq-producer
+spec:
+  selector:
+    app: grpc-rabbitmq-producer
+  ports:
+    - port: 50052
+      targetPort: 50052

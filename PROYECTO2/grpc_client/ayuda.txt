@@ -69,14 +69,20 @@ docker push rmiguel12/grpc_server_rabbit:latest
 docker build -t rmiguel12/api_rust:1.0 .
 docker push rmiguel12/api_rust:1.0
 
-docker build -t rmiguel12/grpc_client:3.0 .
-docker push rmiguel12/grpc_client:3.0
+docker build -t rmiguel12/grpc_client:5.0 .
+docker push rmiguel12/grpc_client:5.0
 
 docker build -t rmiguel12/kafka-producer:4.0 .
 docker push rmiguel12/kafka-producer:4.0
 
 docker build -t rmiguel12/kafka-consumer:11.0 .
 docker push rmiguel12/kafka-consumer:11.0
+
+docker build -t rmiguel12/rabbit-producer:1.0 .
+docker push rmiguel12/rabbit-producer:1.0
+
+docker build -t rmiguel12/rabbit-consumer:1.0 .
+docker push rmiguel12/rabbit-consumer:1.0
 
 docker build --no-cache -t rmiguel12/kafka-consumer-final:latest .
 
@@ -227,4 +233,12 @@ kubectl create -f https://strimzi.io/install/latest?namespace=weather-tweets -n 
 kubectl port-forward -n tweets pod/redis-7b986b9f57-mpdn7 6379:6379
 redis-cli -h redis -p 6379
 
+dashboard
+kubectl port-forward --namespace tweets svc/rabbitmq 15672:15672
 
+contrasena
+kubectl get secret --namespace tweets rabbitmq -o jsonpath="{.data.rabbitmq-password}" | base64 -d
+Gh62vf3qHqIzFoI3
+rabbitURL := "amqp://user:Gh62vf3qHqIzFoI3@rabbitmq:5672/"
+
+---a partir grpc client v5.0 ya es con rabbit

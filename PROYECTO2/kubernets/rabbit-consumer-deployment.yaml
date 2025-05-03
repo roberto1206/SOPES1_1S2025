@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq-consumer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq-consumer
+  template:
+    metadata:
+      labels:
+        app: rabbitmq-consumer
+    spec:
+      containers:
+        - name: consumer
+          image: rmiguel12/rabbit-consumer:1.0
+          env:
+            - name: RABBITMQ_HOST
+              value: rabbitmq.default.svc.cluster.local
